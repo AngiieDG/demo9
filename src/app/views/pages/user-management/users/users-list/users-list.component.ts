@@ -18,7 +18,7 @@ import { AppState } from '../../../../../core/reducers';
 import { LayoutUtilsService, MessageType, QueryParamsModel } from '../../../../../core/_base/crud';
 // Models
 import {
-	User,
+	//User,
 	Role,
 	UsersDataSource,
 	UserDeleted,
@@ -26,6 +26,9 @@ import {
 	selectUserById,
 	selectAllRoles
 } from '../../../../../core/auth';
+
+import {User} from '../../../../../models/user.model';
+import {UserService} from '../../../../../services/user.service';
 import { SubheaderService } from '../../../../../core/_base/layout';
 
 // Table with EDIT item in MODAL
@@ -52,7 +55,10 @@ export class UsersListComponent implements OnInit, OnDestroy {
 	// Selection
 	selection = new SelectionModel<User>(true, []);
 	usersResult: User[] = [];
+	usuarios :  User[]=[];
 	allRoles: Role[] = [];
+	roles : any[];
+
 
 	// Subscriptions
 	private subscriptions: Subscription[] = [];
@@ -69,6 +75,7 @@ export class UsersListComponent implements OnInit, OnDestroy {
 		private activatedRoute: ActivatedRoute,
 		private store: Store<AppState>,
 		private router: Router,
+		private userService :UserService,
 		private layoutUtilsService: LayoutUtilsService,
 		private subheaderService: SubheaderService,
 		private cdr: ChangeDetectorRef) {}
@@ -81,6 +88,29 @@ export class UsersListComponent implements OnInit, OnDestroy {
 	 * On init
 	 */
 	ngOnInit() {
+
+
+		setTimeout( () => {
+			this.userService.getAllUser().subscribe(
+			  (data)=>{
+				this.usuarios= data;
+				  console.log(data);
+			  },(err)=>{
+				  console.log(err)
+			  }
+			)
+			
+		  this.userService.getRoles().subscribe(
+			(data)=>{
+			  this.roles= data;
+				console.log(this.roles);
+			},(err)=>{
+				console.log(err)
+			}
+		  )
+		}, 100);
+
+
 		// load roles list
 		const rolesSubscription = this.store.pipe(select(selectAllRoles)).subscribe(res => this.allRoles = res);
 		this.subscriptions.push(rolesSubscription);
@@ -188,7 +218,7 @@ export class UsersListComponent implements OnInit, OnDestroy {
 				return;
 			}
 
-			this.store.dispatch(new UserDeleted({ id: _item.id }));
+			//this.store.dispatch(new UserDeleted({ id: _item.id }));
 			this.layoutUtilsService.showActionNotification(_deleteMessage, MessageType.Delete);
 		});
 	}
@@ -200,9 +230,9 @@ export class UsersListComponent implements OnInit, OnDestroy {
 		const messages = [];
 		this.selection.selected.forEach(elem => {
 			messages.push({
-				text: `${elem.fullname}, ${elem.email}`,
-				id: elem.id.toString(),
-				status: elem.username
+				text: `${elem.lastname}, ${elem.email}`,
+				id: elem._id.toString(),
+				status: elem.fisrtname
 			});
 		});
 		this.layoutUtilsService.fetchElements(messages);
@@ -221,10 +251,10 @@ export class UsersListComponent implements OnInit, OnDestroy {
 	 * Toggle selection
 	 */
 	masterToggle() {
-		if (this.selection.selected.length === this.usersResult.length) {
+		if (this.selection.selected.length === this.usuarios.length) {
 			this.selection.clear();
 		} else {
-			this.usersResult.forEach(row => this.selection.select(row));
+			this.usuarios.forEach(row => this.selection.select(row));
 		}
 	}
 
@@ -234,9 +264,10 @@ export class UsersListComponent implements OnInit, OnDestroy {
 	 *
 	 * @param user: User
 	 */
+/*
 	getUserRolesStr(user: User): string {
 		const titles: string[] = [];
-		each(user.roles, (roleId: number) => {
+		each(user._role, (roleId: number) => {
 			const _role = find(this.allRoles, (role: Role) => role.id === roleId);
 			if (_role) {
 				titles.push(_role.title);
@@ -244,7 +275,7 @@ export class UsersListComponent implements OnInit, OnDestroy {
 		});
 		return titles.join(', ');
 	}
-
+*/
 	/**
 	 * Redirect to edit page
 	 *
